@@ -105,6 +105,7 @@ h1, h2, p { margin: 0; }
 .add-row .field { flex: 1; min-width: 0; }
 .add-row .btn { width: auto; flex: none; padding: 0 26px; }
 .row .x { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); color: var(--muted); flex: none; }
+.private { margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--tint); color: var(--purple); font-size: 14px; line-height: 1.4; font-weight: 550; }
 .hint { font-size: 15px; line-height: 1.4; color: var(--muted); padding: 0 6px; }
 .label { font-size: 15px; font-weight: 650; color: var(--muted); padding: 0 6px; }
 .error { min-height: 22px; padding: 0 6px; font-size: 16px; font-weight: 600; color: var(--danger); }
@@ -224,7 +225,8 @@ h1, h2, p { margin: 0; }
     <div class="stack">
       <button class="btn primary" id="start">Start today</button>
       <button class="btn" id="open-team">👥 Team <span class="soon" id="team-count"></span></button>
-      <div class="disabled-row" aria-disabled="true">🕘 Check history <span class="soon">Coming soon</span></div>
+      <button class="btn" id="open-history">🕘 History <span class="soon" id="history-count"></span></button>
+      <p class="private">🔒 Private: your team list and history are saved only on this phone. Nobody else can see them.</p>
     </div>
   </section>
 
@@ -234,7 +236,7 @@ h1, h2, p { margin: 0; }
       <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
       <h1>👥 Team</h1>
     </div>
-    <p class="hint">Save each name once. When you add people to a day, tap the name instead of typing it. Names are saved on this phone.</p>
+    <p class="hint">Save each name once. When you add people to a day, tap the name instead of typing it.</p>
     <div class="group">
       <h2>🍳 Kitchen</h2>
       <div class="rows" id="team-Kitchen"></div>
@@ -251,6 +253,20 @@ h1, h2, p { margin: 0; }
         <button class="btn soft" data-team-add="Service">Add</button>
       </div>
     </div>
+    <div class="spacer"></div>
+    <p class="private">🔒 Saved only on this phone. Each person has their own list, and nobody else can see yours.</p>
+  </section>
+
+  <!-- History: past days saved on this phone -->
+  <section id="history" class="screen">
+    <div class="bar">
+      <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <h1>🕘 History</h1>
+    </div>
+    <p class="hint" id="history-hint"></p>
+    <div class="rows" id="history-list"></div>
+    <div class="spacer"></div>
+    <p class="private">🔒 Saved only on this phone. It is not shared with the team and not kept on a server. If you clear this browser's data or change phone, it is gone, so save the picture for anything you need to keep.</p>
   </section>
 
   <!-- 2. Total -->
@@ -351,8 +367,10 @@ h1, h2, p { margin: 0; }
       <div class="two">
         <button class="btn" id="copy-text">📋 Copy</button>
         <button class="btn" id="edit-result">✏️ Edit</button>
+        <button class="btn" id="delete-entry" style="color: var(--danger)">🗑️ Delete</button>
       </div>
       <button class="btn soft" id="done">✅ Done · start new</button>
+      <button class="btn soft" id="back-to-history">⬅️ Back to history</button>
     </div>
   </section>
 
@@ -371,16 +389,17 @@ h1, h2, p { margin: 0; }
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var state = { total: null, people: [], editing: null, result: null, nextId: 1 };
+  var state = { total: null, people: [], editing: null, result: null, nextId: 1, splitId: null, viewing: false };
   var draft = { dept: 'Kitchen', half: false };
 
   var DEPT_EMOJI = { Kitchen: '\uD83C\uDF73', Service: '\uD83C\uDF7D\uFE0F' };
-  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89']];
+  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89'], ['Tip time', '\uD83D\uDCB8'], ["Let's split the tips", '\uD83D\uDCB0']];
   var firstName = '';
   // A different greeting each time the home screen opens.
   function showGreeting() {
     var pick = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
-    $('hello').textContent = pick[0] + (firstName ? ', ' + firstName : '') + ' ' + pick[1];
+    var named = firstName && pick[0].indexOf("Let's") !== 0;
+    $('hello').textContent = pick[0] + (named ? ', ' + firstName : '') + ' ' + pick[1];
   }
 
   // ── Small helpers ────────────────────────────────────────────────────────
@@ -470,9 +489,48 @@ h1, h2, p { margin: 0; }
   $('open-team').addEventListener('click', function () { renderTeam(); show('team'); });
   renderTeam();
 
+  // ── History, saved on this phone only ────────────────────────────────────
+  var HISTORY_KEY = 'tips.history';
+  function savedHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch (e) { return []; }
+  }
+  function writeHistory(list) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 200))); return true; } catch (e) { return false; }
+  }
+  // Recalculating the same split (after an edit) replaces its entry instead of adding a second one.
+  function saveToHistory(entry) {
+    var list = savedHistory().filter(function (e) { return e.id !== entry.id; });
+    list.unshift(entry);
+    return writeHistory(list);
+  }
+  function renderHistory() {
+    var list = savedHistory();
+    $('history-count').textContent = list.length ? list.length + (list.length === 1 ? ' day' : ' days') : 'Empty';
+    $('history-hint').textContent = list.length
+      ? 'Every split you calculate is kept here. Tap a day to see it again.'
+      : 'Nothing yet. Every split you calculate will be kept here.';
+    var box = $('history-list');
+    box.textContent = '';
+    list.forEach(function (entry) {
+      var row = el('button', 'row');
+      var who = el('span', 'who');
+      who.appendChild(el('b', '', entry.dateText));
+      who.appendChild(el('span', '', entry.people.length + (entry.people.length === 1 ? ' person' : ' people')));
+      row.appendChild(who);
+      row.appendChild(el('span', 'amount', money(entry.total)));
+      row.addEventListener('click', function () {
+        state.result = entry; state.viewing = true;
+        renderResult(); show('result');
+      });
+      box.appendChild(row);
+    });
+  }
+  $('open-history').addEventListener('click', function () { renderHistory(); show('history'); });
+
   // ── Home ─────────────────────────────────────────────────────────────────
   $('today').textContent = todayText();
   showGreeting();
+  renderHistory();
   $('start').addEventListener('click', function () {
     $('total-input').value = state.total ? String(state.total) : '';
     $('total-error').textContent = '';
@@ -480,7 +538,7 @@ h1, h2, p { margin: 0; }
     $('total-input').focus();
   });
   document.querySelectorAll('[data-go]').forEach(function (b) {
-    b.addEventListener('click', function () { if (b.dataset.go === 'home') renderTeam(); show(b.dataset.go); });
+    b.addEventListener('click', function () { if (b.dataset.go === 'home') { renderTeam(); renderHistory(); } show(b.dataset.go); });
   });
 
   // ── Total ────────────────────────────────────────────────────────────────
@@ -488,6 +546,7 @@ h1, h2, p { margin: 0; }
     var v = parseNumber($('total-input').value);
     if (!(v > 0)) { $('total-error').textContent = 'Enter the total, for example 350'; return; }
     state.total = Math.round(v * 100) / 100;
+    if (!state.splitId) state.splitId = String(Date.now());
     renderPeople();
     show('people');
   }
@@ -626,6 +685,10 @@ h1, h2, p { margin: 0; }
       .then(function (answer) {
         if (!answer.ok) { $('people-error').textContent = answer.data.error || 'Could not calculate. Try again.'; return; }
         state.result = answer.data;
+        state.result.id = state.splitId;
+        state.result.dateText = todayText();
+        state.viewing = false;
+        if (!saveToHistory(state.result)) toast('Could not save to history');
         renderResult();
         show('result');
       })
@@ -637,7 +700,11 @@ h1, h2, p { margin: 0; }
   function detail(p) { return hoursText(p.hours) + (p.share === 'half' ? ' · half' : ''); }
   function renderResult() {
     var r = state.result;
-    $('result-date').textContent = todayText();
+    $('result-date').textContent = r.dateText || todayText();
+    $('edit-result').style.display = state.viewing ? 'none' : '';
+    $('done').style.display = state.viewing ? 'none' : '';
+    $('delete-entry').style.display = state.viewing ? '' : 'none';
+    $('back-to-history').style.display = state.viewing ? '' : 'none';
     $('result-total').textContent = money(r.total);
     var index = 0;
     ['Kitchen', 'Service'].forEach(function (dept) {
@@ -655,7 +722,7 @@ h1, h2, p { margin: 0; }
   }
   function resultText() {
     var r = state.result;
-    var lines = ['St. Bart tips · ' + todayText(), '\uD83D\uDCB0 Total: ' + money(r.total)];
+    var lines = ['St. Bart tips · ' + (r.dateText || todayText()), '\uD83D\uDCB0 Total: ' + money(r.total)];
     ['Kitchen', 'Service'].forEach(function (dept) {
       lines.push('', DEPT_EMOJI[dept] + ' ' + dept);
       r.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
@@ -666,10 +733,25 @@ h1, h2, p { margin: 0; }
   }
   $('edit-result').addEventListener('click', function () { renderPeople(); show('people'); });
   $('done').addEventListener('click', function () {
-    state.total = null; state.people = []; state.result = null; state.editing = null;
+    state.total = null; state.people = []; state.result = null; state.editing = null; state.splitId = null;
     renderTeam();
+    renderHistory();
     showGreeting();
     show('home');
+  });
+
+  $('back-to-history').addEventListener('click', function () { renderHistory(); show('history'); });
+  var deleteArmed = false;
+  $('delete-entry').addEventListener('click', function () {
+    // two taps, so a slip of the thumb does not delete a day
+    if (!deleteArmed) {
+      deleteArmed = true; $('delete-entry').textContent = 'Tap again';
+      setTimeout(function () { deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete'; }, 2500);
+      return;
+    }
+    deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete';
+    writeHistory(savedHistory().filter(function (e) { return e.id !== state.result.id; }));
+    renderHistory(); show('history'); toast('Deleted');
   });
 
   $('copy-text').addEventListener('click', function () {
@@ -725,7 +807,7 @@ h1, h2, p { margin: 0; }
     ctx.textAlign = 'center'; ctx.fillStyle = '#15121C'; font(700, 46);
     ctx.fillText('St. Bart', W / 2, 330);
     ctx.fillStyle = '#625E6E'; font(400, 36);
-    ctx.fillText(todayText(), W / 2, 384);
+    ctx.fillText(r.dateText || todayText(), W / 2, 384);
 
     var gradient = ctx.createLinearGradient(pad, 430, W - pad, 590);
     gradient.addColorStop(0, '#14101D'); gradient.addColorStop(0.55, '#2A1750'); gradient.addColorStop(1, '#4B2A8F');
