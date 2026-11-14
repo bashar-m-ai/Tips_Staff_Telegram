@@ -82,7 +82,8 @@ h1, h2, p { margin: 0; }
 .brand b { display: block; font-size: 19px; letter-spacing: -0.01em; }
 .brand span { font-size: 14px; color: var(--muted); }
 .hello { font-size: 46px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; margin-top: 12px; overflow-wrap: anywhere; }
-.date { font-size: 20px; color: var(--muted); margin-top: 8px; }
+.tagline { font-size: 24px; font-weight: 650; letter-spacing: -0.01em; margin-top: 10px; }
+.date { font-size: 18px; color: var(--muted); margin-top: 6px; }
 .soon { margin-left: auto; padding: 6px 12px; border-radius: 999px; background: var(--tint); color: var(--purple); font-size: 13px; font-weight: 650; white-space: nowrap; }
 .disabled-row {
   display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 20px;
@@ -219,6 +220,7 @@ h1, h2, p { margin: 0; }
     </div>
     <div>
       <h1 class="hello" id="hello">Good evening</h1>
+      <p class="tagline">Let's split today's tips 💰</p>
       <p class="date" id="today"></p>
     </div>
     <div class="spacer"></div>
@@ -393,7 +395,7 @@ h1, h2, p { margin: 0; }
   var draft = { dept: 'Kitchen', half: false };
 
   var DEPT_EMOJI = { Kitchen: '\uD83C\uDF73', Service: '\uD83C\uDF7D\uFE0F' };
-  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89'], ['Tip time', '\uD83D\uDCB8'], ["Let's split the tips", '\uD83D\uDCB0'], ["Let's calculate the tips", '\uD83E\uDDEE'], ["Tip o'clock", '\u23F0'], ['Sharing is caring', '\uD83D\uDC9C']];
+  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89'], ['Tip time', '\uD83D\uDCB8'], ["Tip o'clock", '\u23F0'], ['Sharing is caring', '\uD83D\uDC9C']];
   var firstName = '';
   // A different greeting each time the home screen opens.
   function showGreeting() {
