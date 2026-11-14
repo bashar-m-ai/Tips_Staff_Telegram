@@ -101,6 +101,11 @@ h1, h2, p { margin: 0; }
 }
 .total-entry input:focus-visible, .stepper input:focus-visible { outline: none; }
 .total-entry:focus-within, .stepper:focus-within { box-shadow: 0 0 0 3px var(--tint), 0 0 0 4px var(--purple); }
+.add-row { display: flex; gap: 10px; }
+.add-row .field { flex: 1; min-width: 0; }
+.add-row .btn { width: auto; flex: none; padding: 0 26px; }
+.row .x { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); color: var(--muted); flex: none; }
+.hint { font-size: 15px; line-height: 1.4; color: var(--muted); padding: 0 6px; }
 .label { font-size: 15px; font-weight: 650; color: var(--muted); padding: 0 6px; }
 .error { min-height: 22px; padding: 0 6px; font-size: 16px; font-weight: 600; color: var(--danger); }
 
@@ -218,7 +223,33 @@ h1, h2, p { margin: 0; }
     <div class="spacer"></div>
     <div class="stack">
       <button class="btn primary" id="start">Start today</button>
+      <button class="btn" id="open-team">Team <span class="soon" id="team-count"></span></button>
       <div class="disabled-row" aria-disabled="true">Check history <span class="soon">Coming soon</span></div>
+    </div>
+  </section>
+
+  <!-- Team: names saved on this phone -->
+  <section id="team" class="screen">
+    <div class="bar">
+      <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <h1>Team</h1>
+    </div>
+    <p class="hint">Save each name once. When you add people to a day, tap the name instead of typing it. Names are saved on this phone.</p>
+    <div class="group">
+      <h2>Kitchen</h2>
+      <div class="rows" id="team-Kitchen"></div>
+      <div class="add-row">
+        <input class="field" id="team-input-Kitchen" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="Kitchen name" aria-label="New kitchen name">
+        <button class="btn soft" data-team-add="Kitchen">Add</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Service</h2>
+      <div class="rows" id="team-Service"></div>
+      <div class="add-row">
+        <input class="field" id="team-input-Service" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="Service name" aria-label="New service name">
+        <button class="btn soft" data-team-add="Service">Add</button>
+      </div>
     </div>
   </section>
 
@@ -380,9 +411,55 @@ h1, h2, p { margin: 0; }
     try {
       var list = savedNames().filter(function (n) { return n.name.toLowerCase() !== name.toLowerCase(); });
       list.unshift({ name: name, dept: dept });
-      localStorage.setItem(NAMES_KEY, JSON.stringify(list.slice(0, 40)));
+      localStorage.setItem(NAMES_KEY, JSON.stringify(list.slice(0, 80)));
     } catch (e) { /* private mode: just skip it */ }
   }
+
+  function forgetName(name) {
+    try {
+      var list = savedNames().filter(function (n) { return n.name.toLowerCase() !== name.toLowerCase(); });
+      localStorage.setItem(NAMES_KEY, JSON.stringify(list));
+    } catch (e) { /* nothing to do */ }
+  }
+
+  // ── Team ─────────────────────────────────────────────────────────────────
+  function renderTeam() {
+    var all = savedNames();
+    $('team-count').textContent = all.length ? all.length + (all.length === 1 ? ' name' : ' names') : 'Add names';
+    ['Kitchen', 'Service'].forEach(function (dept) {
+      var box = $('team-' + dept);
+      box.textContent = '';
+      all.filter(function (n) { return n.dept === dept; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name); })
+        .forEach(function (n) {
+          var row = el('button', 'row');
+          row.setAttribute('aria-label', 'Remove ' + n.name);
+          var who = el('span', 'who');
+          who.appendChild(el('b', '', n.name));
+          row.appendChild(who);
+          row.insertAdjacentHTML('beforeend', '<span class="x" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span>');
+          row.addEventListener('click', function () { forgetName(n.name); renderTeam(); toast(n.name + ' removed'); });
+          box.appendChild(row);
+        });
+    });
+  }
+  function addTeamName(dept) {
+    var input = $('team-input-' + dept);
+    var name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    rememberName(name, dept);
+    input.value = '';
+    renderTeam();
+    input.focus();
+  }
+  document.querySelectorAll('[data-team-add]').forEach(function (b) {
+    b.addEventListener('click', function () { addTeamName(b.dataset.teamAdd); });
+  });
+  ['Kitchen', 'Service'].forEach(function (dept) {
+    $('team-input-' + dept).addEventListener('keydown', function (e) { if (e.key === 'Enter') addTeamName(dept); });
+  });
+  $('open-team').addEventListener('click', function () { renderTeam(); show('team'); });
+  renderTeam();
 
   // ── Home ─────────────────────────────────────────────────────────────────
   $('today').textContent = todayText();
@@ -393,7 +470,7 @@ h1, h2, p { margin: 0; }
     $('total-input').focus();
   });
   document.querySelectorAll('[data-go]').forEach(function (b) {
-    b.addEventListener('click', function () { show(b.dataset.go); });
+    b.addEventListener('click', function () { if (b.dataset.go === 'home') renderTeam(); show(b.dataset.go); });
   });
 
   // ── Total ────────────────────────────────────────────────────────────────
@@ -453,21 +530,32 @@ h1, h2, p { margin: 0; }
     $('person-remove').style.display = person ? '' : 'none';
     $('person-error').textContent = '';
 
-    var used = state.people.map(function (p) { return p.name.toLowerCase(); });
-    var chips = $('name-chips');
-    chips.textContent = '';
-    if (!person) {
-      savedNames()
-        .filter(function (n) { return n.dept === dept && used.indexOf(n.name.toLowerCase()) === -1; })
-        .slice(0, 12)
-        .forEach(function (n) {
-          var chip = el('button', 'chip', n.name);
-          chip.addEventListener('click', function () { $('person-name').value = n.name; });
-          chips.appendChild(chip);
-        });
-    }
+    renderSuggestions();
     show('person');
   }
+  // Saved names for this department, minus people already added today.
+  // Typing narrows the list to names that start with what was typed.
+  function renderSuggestions() {
+    var typed = $('person-name').value.trim().toLowerCase();
+    var used = state.people
+      .filter(function (p) { return p.id !== state.editing; })
+      .map(function (p) { return p.name.toLowerCase(); });
+    var chips = $('name-chips');
+    chips.textContent = '';
+    savedNames()
+      .filter(function (n) {
+        var lower = n.name.toLowerCase();
+        return n.dept === draft.dept && used.indexOf(lower) === -1 && lower !== typed && lower.indexOf(typed) === 0;
+      })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); })
+      .slice(0, 12)
+      .forEach(function (n) {
+        var chip = el('button', 'chip', n.name);
+        chip.addEventListener('click', function () { $('person-name').value = n.name; renderSuggestions(); });
+        chips.appendChild(chip);
+      });
+  }
+  $('person-name').addEventListener('input', renderSuggestions);
   function stepHours(change) {
     var v = parseNumber($('person-hours').value);
     if (!isFinite(v)) v = 8;
@@ -569,6 +657,7 @@ h1, h2, p { margin: 0; }
   $('edit-result').addEventListener('click', function () { renderPeople(); show('people'); });
   $('done').addEventListener('click', function () {
     state.total = null; state.people = []; state.result = null; state.editing = null;
+    renderTeam();
     show('home');
   });
 
