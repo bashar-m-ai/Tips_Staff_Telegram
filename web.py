@@ -6,6 +6,7 @@ shift, this file answers with the result.
 
 Try it on your own computer:   python web.py   then open http://localhost:8080
 """
+import hashlib
 import json
 import math
 import os
@@ -23,6 +24,12 @@ FILES = {
     "/": ("app.html", "text/html; charset=utf-8"),
     "/logo.png": ("logo.png", "image/png"),
 }
+
+def page_version():
+    """A short fingerprint of app.html. It changes whenever the page changes,
+    so an open page can notice that a newer one has been deployed."""
+    return hashlib.sha256((HERE / "app.html").read_bytes()).hexdigest()[:12]
+
 
 MAX_BODY_BYTES = 20_000
 MAX_PEOPLE = 60
@@ -102,6 +109,8 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         if path == "/healthz":
             return self._send(200, b"ok", "text/plain")
+        if path == "/version":
+            return self._send(200, page_version().encode(), "text/plain")
         if path not in FILES:
             return self._send(404, b"Not found", "text/plain")
         filename, content_type = FILES[path]

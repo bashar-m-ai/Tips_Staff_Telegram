@@ -987,6 +987,27 @@ h1, h2, p { margin: 0; }
     }, 'image/png');
   });
 
+  // ── Pick up new versions by itself ───────────────────────────────────────
+  // A page saved to the home screen stays open in the background for days,
+  // so it would keep showing an old version. Whenever the app comes back to
+  // the front on the home screen, ask the server whether the page changed
+  // and reload if it did. Never mid-split, so nothing typed is lost.
+  var loadedVersion = null;
+  function checkVersion() {
+    fetch('/version', { cache: 'no-store' })
+      .then(function (response) { return response.ok ? response.text() : null; })
+      .then(function (version) {
+        if (!version) return;
+        if (loadedVersion === null) { loadedVersion = version; return; }
+        var idle = $('home').classList.contains('active') && state.total === null;
+        if (version !== loadedVersion && idle) location.reload();
+      })
+      .catch(function () { /* offline: try again next time */ });
+  }
+  checkVersion();
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) checkVersion(); });
+  window.addEventListener('pageshow', checkVersion);
+
   // ── Inside Telegram: fill the screen and greet by first name ─────────────
   window.tipsTelegramReady = function () {
     var tg = window.Telegram && window.Telegram.WebApp;

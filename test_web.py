@@ -95,3 +95,11 @@ def test_garbage_and_oversized_requests_are_rejected(base_url):
     assert post(base_url, None, raw=b"[1, 2, 3]")[0] == 400
     assert post(base_url, None, raw=b'{"total": NaN, "people": []}')[0] == 400
     assert post(base_url, None, raw=b"x" * 50_000)[0] == 400
+
+
+def test_version_changes_only_when_the_page_changes(base_url):
+    with urllib.request.urlopen(base_url + "/version", timeout=5) as response:
+        first = response.read().decode()
+    with urllib.request.urlopen(base_url + "/version", timeout=5) as response:
+        assert response.read().decode() == first
+    assert first == web.page_version() and len(first) == 12
