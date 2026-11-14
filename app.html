@@ -229,7 +229,8 @@ h1, h2, p { margin: 0; }
 .coin { position: fixed; z-index: 30; font-size: 30px; pointer-events: none; animation: fly 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
 .hello .wave { display: inline-block; transform-origin: 70% 70%; animation: wiggle 0.9s ease-in-out 0.25s 1; }
 .chip { animation: chip-in 0.28s var(--spring) both; }
-.stepper input.bump { animation: bump 0.22s var(--spring); }
+@keyframes press { 0% { background: var(--tint); color: var(--purple); transform: scale(1); } 30% { background: var(--purple); color: #FFFFFF; transform: scale(0.86); } 100% { background: var(--tint); color: var(--purple); transform: scale(1); } }
+.round.tap { animation: press 0.32s var(--spring); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
@@ -700,6 +701,7 @@ h1, h2, p { margin: 0; }
     draft.dept = dept;
     $('person-title').textContent = person ? 'Edit ' + person.name : 'Add to ' + dept.toLowerCase();
     $('person-name').value = person ? person.name : '';
+    cancelAnimationFrame(hoursRoll); delete $('person-hours').dataset.target;
     $('person-hours').value = String(person ? person.hours : 8);
     setShare(person ? person.half : false);
     $('person-remove').style.display = person ? '' : 'none';
@@ -732,20 +734,46 @@ h1, h2, p { margin: 0; }
   }
   $('person-name').addEventListener('input', renderSuggestions);
   function stepHours(change) {
-    var v = parseNumber($('person-hours').value);
+    var v = currentHours();
     if (!isFinite(v)) v = 8;
+    var from = v;
     v = Math.min(24, Math.max(0.5, Math.round((v + change) * 2) / 2));
-    $('person-hours').value = String(v);
-    replay($('person-hours'), 'bump');
+    rollHours(from, v);
   }
-  $('hours-minus').addEventListener('click', function () { stepHours(-0.5); });
-  $('hours-plus').addEventListener('click', function () { stepHours(0.5); });
+  // The number runs quickly from the old value to the new one, like the tips do.
+  var hoursRoll = 0;
+  function rollHours(from, to) {
+    var input = $('person-hours');
+    cancelAnimationFrame(hoursRoll);
+    if (calm || from === to) { input.value = String(to); return; }
+    input.dataset.target = String(to);       // what Save should use if tapped mid-roll
+    var start = null, duration = 180;
+    function frame(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / duration);
+      if (t < 1) {
+        input.value = (from + (to - from) * t).toFixed(1);
+        hoursRoll = requestAnimationFrame(frame);
+      } else {
+        input.value = String(to);
+        delete input.dataset.target;
+      }
+    }
+    hoursRoll = requestAnimationFrame(frame);
+  }
+  function currentHours() {
+    var input = $('person-hours');
+    return parseNumber(input.dataset.target !== undefined ? input.dataset.target : input.value);
+  }
+  $('hours-minus').addEventListener('click', function () { replay($('hours-minus'), 'tap'); stepHours(-0.5); });
+  $('hours-plus').addEventListener('click', function () { replay($('hours-plus'), 'tap'); stepHours(0.5); });
+  $('person-hours').addEventListener('input', function () { cancelAnimationFrame(hoursRoll); delete $('person-hours').dataset.target; });
   $('share-full').addEventListener('click', function () { setShare(false); });
   $('share-half').addEventListener('click', function () { setShare(true); });
 
   $('person-save').addEventListener('click', function () {
     var name = $('person-name').value.trim();
-    var hours = parseNumber($('person-hours').value);
+    var hours = currentHours();
     if (!name) { $('person-error').textContent = 'Enter a name'; return; }
     if (!(hours > 0) || hours > 24) { $('person-error').textContent = 'Hours must be between 0.5 and 24'; return; }
     var person = state.people.find(function (p) { return p.id === state.editing; });
