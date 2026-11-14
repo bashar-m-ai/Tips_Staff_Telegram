@@ -83,7 +83,9 @@ h1, h2, p { margin: 0; }
 .brand span { font-size: 14px; color: var(--muted); }
 .hello { font-size: 46px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; margin-top: 12px; overflow-wrap: anywhere; }
 .tagline { font-size: 24px; font-weight: 650; letter-spacing: -0.01em; margin-top: 10px; }
-.date { font-size: 18px; color: var(--muted); margin-top: 6px; }
+.date { font-size: 22px; font-weight: 550; color: var(--muted); margin-top: 8px; }
+.weather { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 16px; border-radius: 999px; background: var(--card); font-size: 18px; font-weight: 600; }
+.weather[hidden] { display: none; }
 .soon { margin-left: auto; padding: 6px 12px; border-radius: 999px; background: var(--tint); color: var(--purple); font-size: 13px; font-weight: 650; white-space: nowrap; }
 .disabled-row {
   display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 20px;
@@ -222,6 +224,7 @@ h1, h2, p { margin: 0; }
       <h1 class="hello" id="hello">Good evening</h1>
       <p class="tagline">Let's split today's tips 💰</p>
       <p class="date" id="today"></p>
+      <p class="weather" id="weather" hidden></p>
     </div>
     <div class="spacer"></div>
     <div class="stack">
@@ -528,6 +531,34 @@ h1, h2, p { margin: 0; }
     });
   }
   $('open-history').addEventListener('click', function () { renderHistory(); show('history'); });
+
+  // ── Weather in Berlin right now (Open-Meteo: free, no key) ───────────────
+  // If the weather service cannot be reached, the line simply stays hidden.
+  function weatherLook(code, isDay) {
+    if (code === 0) return [isDay ? '\u2600\uFE0F' : '\uD83C\uDF19', 'Clear'];
+    if (code <= 2) return [isDay ? '\uD83C\uDF24\uFE0F' : '\uD83C\uDF19', 'Partly cloudy'];
+    if (code === 3) return ['\u2601\uFE0F', 'Cloudy'];
+    if (code === 45 || code === 48) return ['\uD83C\uDF2B\uFE0F', 'Fog'];
+    if (code >= 51 && code <= 57) return ['\uD83C\uDF26\uFE0F', 'Drizzle'];
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ['\uD83C\uDF27\uFE0F', 'Rain'];
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ['\u2744\uFE0F', 'Snow'];
+    if (code >= 95) return ['\u26C8\uFE0F', 'Thunderstorm'];
+    return ['\uD83C\uDF21\uFE0F', ''];
+  }
+  function loadWeather() {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.405&current=temperature_2m,weather_code,is_day&timezone=Europe%2FBerlin';
+    fetch(url)
+      .then(function (response) { if (!response.ok) throw new Error('weather'); return response.json(); })
+      .then(function (data) {
+        var now = data.current;
+        if (!now || typeof now.temperature_2m !== 'number') return;
+        var look = weatherLook(now.weather_code, now.is_day === 1);
+        $('weather').textContent = look[0] + ' ' + Math.round(now.temperature_2m) + '\u00B0C' + (look[1] ? ' \u00B7 ' + look[1] : '') + ' \u00B7 Berlin';
+        $('weather').hidden = false;
+      })
+      .catch(function () { /* no weather is fine */ });
+  }
+  loadWeather();
 
   // ── Home ─────────────────────────────────────────────────────────────────
   $('today').textContent = todayText();
