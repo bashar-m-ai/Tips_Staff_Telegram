@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F3F8">
+<title>St. Bart Tips</title>
+<link rel="icon" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<style>
+:root {
+  --bg: #F4F3F8;
+  --card: #FFFFFF;
+  --ink: #15121C;
+  --muted: #625E6E;
+  --line: #E6E3EE;
+  --tint: #EEE9FA;
+  --purple: #4B2A8F;
+  --danger: #B42318;
+  /* near-black sliding into dark purple: used on the main buttons and the total */
+  --grad: linear-gradient(135deg, #14101D 0%, #2A1750 55%, #4B2A8F 100%);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, p { margin: 0; }
+
+#app { max-width: 480px; min-height: 100%; margin: 0 auto; }
+.screen {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
+}
+.screen.active { display: flex; animation: enter 0.18s ease-out; }
+.spacer { flex: 1; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+/* Big buttons */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 68px; padding: 12px 20px;
+  border: 0; border-radius: 22px;
+  background: var(--card); color: var(--ink);
+  font-size: 20px; font-weight: 650; letter-spacing: -0.01em;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn.primary { background: var(--grad); color: #FFFFFF; box-shadow: 0 10px 24px rgba(43, 23, 80, 0.22); }
+.btn.soft { background: var(--tint); color: var(--purple); }
+.btn.quiet { background: transparent; color: var(--muted); min-height: 56px; font-size: 18px; }
+.btn.danger { background: transparent; color: var(--danger); min-height: 56px; font-size: 18px; }
+.btn[disabled] { opacity: 0.4; }
+.btn:focus-visible, .row:focus-visible, input:focus-visible, .chip:focus-visible, .round:focus-visible {
+  outline: 3px solid var(--purple); outline-offset: 3px;
+}
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Top bar */
+.bar { display: flex; align-items: center; gap: 12px; }
+.back {
+  display: flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--card);
+  transition: transform 0.12s ease;
+}
+.back:active { transform: scale(0.94); }
+.bar h1 { font-size: 28px; font-weight: 750; letter-spacing: -0.02em; }
+
+/* Home */
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand img { width: 64px; height: 64px; padding: 6px; border-radius: 20px; background: var(--card); }
+.brand b { display: block; font-size: 19px; letter-spacing: -0.01em; }
+.brand span { font-size: 14px; color: var(--muted); }
+.hello { font-size: 52px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; margin-top: 12px; overflow-wrap: anywhere; }
+.date { font-size: 20px; color: var(--muted); margin-top: 8px; }
+.soon { margin-left: auto; padding: 6px 12px; border-radius: 999px; background: var(--tint); color: var(--purple); font-size: 13px; font-weight: 650; white-space: nowrap; }
+.disabled-row {
+  display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 20px;
+  border-radius: 22px; background: var(--card); color: var(--muted); font-size: 20px; font-weight: 650;
+}
+
+/* Total */
+.total-entry {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 28px 20px; border-radius: 28px; background: var(--card);
+}
+.total-entry span { font-size: 44px; font-weight: 750; color: var(--muted); }
+.total-entry input {
+  width: 100%; min-width: 0; border: 0; background: transparent; outline-offset: 8px;
+  font-size: 60px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+}
+.total-entry input:focus-visible, .stepper input:focus-visible { outline: none; }
+.total-entry:focus-within, .stepper:focus-within { box-shadow: 0 0 0 3px var(--tint), 0 0 0 4px var(--purple); }
+.label { font-size: 15px; font-weight: 650; color: var(--muted); padding: 0 6px; }
+.error { min-height: 22px; padding: 0 6px; font-size: 16px; font-weight: 600; color: var(--danger); }
+
+/* People */
+.total-chip {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; min-height: 84px; padding: 16px 22px; border: 0; border-radius: 26px;
+  background: var(--grad); color: #FFFFFF; text-align: left;
+  transition: transform 0.12s ease;
+}
+.total-chip:active { transform: scale(0.98); }
+.total-chip small { display: block; font-size: 14px; color: #CFC6E6; font-weight: 600; }
+.total-chip b { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.total-chip i { font-style: normal; font-size: 15px; font-weight: 650; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); }
+.group { display: flex; flex-direction: column; gap: 10px; }
+.group h2 { font-size: 17px; font-weight: 700; padding: 0 6px; }
+.rows { display: flex; flex-direction: column; gap: 1px; border-radius: 22px; overflow: hidden; background: var(--line); }
+.rows:empty { display: none; }
+.row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 68px; padding: 12px 18px;
+  border: 0; background: var(--card); text-align: left;
+}
+.row:active { background: #FAF9FD; }
+.row .who { flex: 1; min-width: 0; }
+.row .who b { display: block; font-size: 19px; font-weight: 650; overflow-wrap: anywhere; }
+.row .who span { font-size: 15px; color: var(--muted); }
+.row .amount { font-size: 20px; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+/* Person */
+.field {
+  width: 100%; height: 68px; padding: 0 20px; border: 2px solid var(--line); border-radius: 22px;
+  background: var(--card); font-size: 22px; font-weight: 650;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chips:empty { display: none; }
+.chip {
+  min-height: 52px; padding: 0 20px; border: 0; border-radius: 999px;
+  background: var(--card); font-size: 18px; font-weight: 600;
+  transition: transform 0.12s ease;
+}
+.chip:active { transform: scale(0.94); }
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 28px; background: var(--card); }
+.round {
+  display: flex; align-items: center; justify-content: center; flex: none;
+  width: 84px; height: 84px; border: 0; border-radius: 50%;
+  background: var(--tint); color: var(--purple);
+  transition: transform 0.1s ease;
+}
+.round:active { transform: scale(0.9); }
+.stepper input {
+  width: 100%; min-width: 0; border: 0; background: transparent; text-align: center;
+  font-size: 52px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+}
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; border-radius: 28px; background: var(--card); }
+.seg button {
+  min-height: 68px; border: 0; border-radius: 20px; background: transparent;
+  font-size: 20px; font-weight: 650; transition: transform 0.12s ease;
+}
+.seg button:active { transform: scale(0.96); }
+.seg button[aria-pressed="true"] { background: var(--grad); color: #FFFFFF; }
+
+/* Result */
+.sheet { display: flex; flex-direction: column; gap: 18px; padding: 24px 20px; border-radius: 30px; background: var(--card); }
+.sheet-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.sheet-head img { width: 84px; height: 84px; }
+.sheet-head b { font-size: 18px; }
+.sheet-head span { font-size: 15px; color: var(--muted); }
+.sheet-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 18px 20px; border-radius: 22px; background: var(--grad); color: #FFFFFF; }
+.sheet-total span { font-size: 15px; font-weight: 600; color: #CFC6E6; }
+.sheet-total b { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.sheet h2 { font-size: 15px; font-weight: 700; color: var(--purple); text-transform: none; }
+.line { display: flex; align-items: baseline; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); animation: pop 0.22s ease-out both; }
+.line b { flex: 1; min-width: 0; font-size: 19px; font-weight: 650; overflow-wrap: anywhere; }
+.line span { font-size: 15px; color: var(--muted); white-space: nowrap; }
+.line strong { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Picture overlay and toast */
+.overlay {
+  position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; gap: 16px;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  background: rgba(15, 11, 24, 0.86); overflow-y: auto;
+}
+.overlay.active { display: flex; animation: enter 0.18s ease-out; }
+.overlay p { color: #FFFFFF; font-size: 18px; font-weight: 600; text-align: center; }
+.overlay img { width: 100%; max-width: 420px; border-radius: 20px; background: #FFFFFF; }
+.overlay .btn { max-width: 420px; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); z-index: 20;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  padding: 14px 22px; border-radius: 999px; background: #15121C; color: #FFFFFF; font-size: 17px; font-weight: 600;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main id="app">
+
+  <!-- 1. Home -->
+  <section id="home" class="screen active">
+    <div class="brand">
+      <img src="/logo.png" alt="St. Bart logo">
+      <div><b>St. Bart</b><span>Tips</span></div>
+    </div>
+    <div>
+      <h1 class="hello" id="hello">Hello</h1>
+      <p class="date" id="today"></p>
+    </div>
+    <div class="spacer"></div>
+    <div class="stack">
+      <button class="btn primary" id="start">Start today</button>
+      <div class="disabled-row" aria-disabled="true">Check history <span class="soon">Coming soon</span></div>
+    </div>
+  </section>
+
+  <!-- 2. Total -->
+  <section id="total" class="screen">
+    <div class="bar">
+      <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <h1>Total tips</h1>
+    </div>
+    <label class="label" for="total-input">How much is in the pot today?</label>
+    <div class="total-entry">
+      <span aria-hidden="true">€</span>
+      <input id="total-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+    </div>
+    <p class="error" id="total-error" role="alert"></p>
+    <div class="spacer"></div>
+    <button class="btn primary" id="total-next">Next</button>
+  </section>
+
+  <!-- 3. People -->
+  <section id="people" class="screen">
+    <div class="bar">
+      <button class="back" data-go="total" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <h1>Who worked?</h1>
+    </div>
+    <button class="total-chip" id="change-total">
+      <span><small>Total tips</small><b id="people-total">€0.00</b></span>
+      <i>Change</i>
+    </button>
+    <div class="group">
+      <h2>Kitchen</h2>
+      <div class="rows" id="list-Kitchen"></div>
+      <button class="btn soft" data-add="Kitchen">+ Add kitchen</button>
+    </div>
+    <div class="group">
+      <h2>Service</h2>
+      <div class="rows" id="list-Service"></div>
+      <button class="btn soft" data-add="Service">+ Add service</button>
+    </div>
+    <p class="error" id="people-error" role="alert"></p>
+    <div class="spacer"></div>
+    <button class="btn primary" id="calculate">Calculate</button>
+  </section>
+
+  <!-- 4. One person -->
+  <section id="person" class="screen">
+    <div class="bar">
+      <button class="back" data-go="people" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <h1 id="person-title">Add</h1>
+    </div>
+    <div class="stack">
+      <label class="label" for="person-name">Name</label>
+      <input class="field" id="person-name" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="Name">
+      <div class="chips" id="name-chips"></div>
+    </div>
+    <div class="stack">
+      <label class="label" for="person-hours">Hours</label>
+      <div class="stepper">
+        <button class="round" id="hours-minus" aria-label="Half an hour less"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <input id="person-hours" type="text" inputmode="decimal" autocomplete="off">
+        <button class="round" id="hours-plus" aria-label="Half an hour more"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </div>
+    <div class="stack">
+      <span class="label" id="share-label">Share</span>
+      <div class="seg" role="group" aria-labelledby="share-label">
+        <button id="share-full" aria-pressed="true">Full</button>
+        <button id="share-half" aria-pressed="false">Half</button>
+      </div>
+    </div>
+    <p class="error" id="person-error" role="alert"></p>
+    <div class="spacer"></div>
+    <div class="stack">
+      <button class="btn primary" id="person-save">Save</button>
+      <button class="btn danger" id="person-remove">Remove</button>
+    </div>
+  </section>
+
+  <!-- 5. Result -->
+  <section id="result" class="screen">
+    <div class="sheet" id="sheet">
+      <div class="sheet-head">
+        <img src="/logo.png" alt="">
+        <b>St. Bart</b>
+        <span id="result-date"></span>
+      </div>
+      <div class="sheet-total"><span>Total tips</span><b id="result-total"></b></div>
+      <div>
+        <h2>Kitchen</h2>
+        <div id="result-Kitchen"></div>
+      </div>
+      <div>
+        <h2>Service</h2>
+        <div id="result-Service"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <button class="btn primary" id="save-picture">Save picture</button>
+      <div class="two">
+        <button class="btn" id="copy-text">Copy</button>
+        <button class="btn" id="edit-result">Edit</button>
+      </div>
+      <button class="btn quiet" id="done">Done · start new</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="overlay" id="picture" role="dialog" aria-label="Result picture">
+  <p>Press and hold the picture to save it</p>
+  <img id="picture-img" alt="Tip split result">
+  <a class="btn" id="picture-download" download>Download</a>
+  <button class="btn quiet" id="picture-close" style="color:#FFFFFF">Close</button>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { total: null, people: [], editing: null, result: null, nextId: 1 };
+  var draft = { dept: 'Kitchen', half: false };
+
+  // ── Small helpers ────────────────────────────────────────────────────────
+  function money(n) { return '€' + Number(n).toFixed(2); }
+  function hoursText(h) { return String(Number(h)) + 'h'; }
+  function parseNumber(text) {
+    var v = parseFloat(String(text).replace(',', '.').trim());
+    return isFinite(v) ? v : NaN;
+  }
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(function (s) { s.classList.toggle('active', s.id === id); });
+    window.scrollTo(0, 0);
+  }
+  function todayText() {
+    return new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  var toastTimer;
+  function toast(text) {
+    $('toast').textContent = text;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('toast').classList.remove('show'); }, 1600);
+  }
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // ── Names remembered on this phone only ──────────────────────────────────
+  var NAMES_KEY = 'tips.names';
+  function savedNames() {
+    try { return JSON.parse(localStorage.getItem(NAMES_KEY)) || []; } catch (e) { return []; }
+  }
+  function rememberName(name, dept) {
+    try {
+      var list = savedNames().filter(function (n) { return n.name.toLowerCase() !== name.toLowerCase(); });
+      list.unshift({ name: name, dept: dept });
+      localStorage.setItem(NAMES_KEY, JSON.stringify(list.slice(0, 40)));
+    } catch (e) { /* private mode: just skip it */ }
+  }
+
+  // ── Home ─────────────────────────────────────────────────────────────────
+  $('today').textContent = todayText();
+  $('start').addEventListener('click', function () {
+    $('total-input').value = state.total ? String(state.total) : '';
+    $('total-error').textContent = '';
+    show('total');
+    $('total-input').focus();
+  });
+  document.querySelectorAll('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () { show(b.dataset.go); });
+  });
+
+  // ── Total ────────────────────────────────────────────────────────────────
+  function acceptTotal() {
+    var v = parseNumber($('total-input').value);
+    if (!(v > 0)) { $('total-error').textContent = 'Enter the total, for example 350'; return; }
+    state.total = Math.round(v * 100) / 100;
+    renderPeople();
+    show('people');
+  }
+  $('total-next').addEventListener('click', acceptTotal);
+  $('total-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') acceptTotal(); });
+  $('change-total').addEventListener('click', function () {
+    $('total-input').value = String(state.total);
+    $('total-error').textContent = '';
+    show('total');
+    $('total-input').focus();
+  });
+
+  // ── People ───────────────────────────────────────────────────────────────
+  function renderPeople() {
+    $('people-total').textContent = money(state.total);
+    $('people-error').textContent = '';
+    ['Kitchen', 'Service'].forEach(function (dept) {
+      var box = $('list-' + dept);
+      box.textContent = '';
+      state.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
+        var row = el('button', 'row');
+        var who = el('span', 'who');
+        who.appendChild(el('b', '', p.name));
+        who.appendChild(el('span', '', hoursText(p.hours) + ' · ' + (p.half ? 'half share' : 'full share')));
+        row.appendChild(who);
+        row.insertAdjacentHTML('beforeend', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B879A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>');
+        row.addEventListener('click', function () { openPerson(p.dept, p.id); });
+        box.appendChild(row);
+      });
+    });
+  }
+  document.querySelectorAll('[data-add]').forEach(function (b) {
+    b.addEventListener('click', function () { openPerson(b.dataset.add, null); });
+  });
+
+  // ── One person ───────────────────────────────────────────────────────────
+  function setShare(half) {
+    draft.half = half;
+    $('share-full').setAttribute('aria-pressed', String(!half));
+    $('share-half').setAttribute('aria-pressed', String(half));
+  }
+  function openPerson(dept, id) {
+    var person = state.people.find(function (p) { return p.id === id; });
+    state.editing = person ? person.id : null;
+    draft.dept = dept;
+    $('person-title').textContent = person ? 'Edit ' + person.name : 'Add to ' + dept.toLowerCase();
+    $('person-name').value = person ? person.name : '';
+    $('person-hours').value = String(person ? person.hours : 8);
+    setShare(person ? person.half : false);
+    $('person-remove').style.display = person ? '' : 'none';
+    $('person-error').textContent = '';
+
+    var used = state.people.map(function (p) { return p.name.toLowerCase(); });
+    var chips = $('name-chips');
+    chips.textContent = '';
+    if (!person) {
+      savedNames()
+        .filter(function (n) { return n.dept === dept && used.indexOf(n.name.toLowerCase()) === -1; })
+        .slice(0, 12)
+        .forEach(function (n) {
+          var chip = el('button', 'chip', n.name);
+          chip.addEventListener('click', function () { $('person-name').value = n.name; });
+          chips.appendChild(chip);
+        });
+    }
+    show('person');
+  }
+  function stepHours(change) {
+    var v = parseNumber($('person-hours').value);
+    if (!isFinite(v)) v = 8;
+    v = Math.min(24, Math.max(0.5, Math.round((v + change) * 2) / 2));
+    $('person-hours').value = String(v);
+  }
+  $('hours-minus').addEventListener('click', function () { stepHours(-0.5); });
+  $('hours-plus').addEventListener('click', function () { stepHours(0.5); });
+  $('share-full').addEventListener('click', function () { setShare(false); });
+  $('share-half').addEventListener('click', function () { setShare(true); });
+
+  $('person-save').addEventListener('click', function () {
+    var name = $('person-name').value.trim();
+    var hours = parseNumber($('person-hours').value);
+    if (!name) { $('person-error').textContent = 'Enter a name'; return; }
+    if (!(hours > 0) || hours > 24) { $('person-error').textContent = 'Hours must be between 0.5 and 24'; return; }
+    var person = state.people.find(function (p) { return p.id === state.editing; });
+    if (person) {
+      person.name = name; person.hours = hours; person.half = draft.half;
+    } else {
+      state.people.push({ id: state.nextId++, name: name, dept: draft.dept, hours: hours, half: draft.half });
+    }
+    rememberName(name, draft.dept);
+    renderPeople();
+    show('people');
+  });
+  $('person-remove').addEventListener('click', function () {
+    state.people = state.people.filter(function (p) { return p.id !== state.editing; });
+    renderPeople();
+    show('people');
+  });
+
+  // ── Calculate: the server does the maths with the bot's own code ─────────
+  $('calculate').addEventListener('click', function () {
+    var missing = ['Kitchen', 'Service'].filter(function (d) {
+      return !state.people.some(function (p) { return p.dept === d; });
+    });
+    if (missing.length) {
+      $('people-error').textContent = 'Add at least one person to ' + missing.join(' and ').toLowerCase();
+      return;
+    }
+    var button = $('calculate');
+    button.disabled = true;
+    $('people-error').textContent = '';
+    fetch('/api/split', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        total: state.total,
+        people: state.people.map(function (p) {
+          return { name: p.name, hours: p.hours, dept: p.dept, share: p.half ? 'half' : 'full' };
+        })
+      })
+    })
+      .then(function (response) {
+        return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+      })
+      .then(function (answer) {
+        if (!answer.ok) { $('people-error').textContent = answer.data.error || 'Could not calculate. Try again.'; return; }
+        state.result = answer.data;
+        renderResult();
+        show('result');
+      })
+      .catch(function () { $('people-error').textContent = 'No connection. Check the internet and try again.'; })
+      .then(function () { button.disabled = false; });
+  });
+
+  // ── Result ───────────────────────────────────────────────────────────────
+  function detail(p) { return hoursText(p.hours) + (p.share === 'half' ? ' · half' : ''); }
+  function renderResult() {
+    var r = state.result;
+    $('result-date').textContent = todayText();
+    $('result-total').textContent = money(r.total);
+    var index = 0;
+    ['Kitchen', 'Service'].forEach(function (dept) {
+      var box = $('result-' + dept);
+      box.textContent = '';
+      r.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
+        var line = el('div', 'line');
+        line.style.animationDelay = (index++ * 40) + 'ms';
+        line.appendChild(el('b', '', p.name));
+        line.appendChild(el('span', '', detail(p)));
+        line.appendChild(el('strong', '', money(p.tips)));
+        box.appendChild(line);
+      });
+    });
+  }
+  function resultText() {
+    var r = state.result;
+    var lines = ['St. Bart tips · ' + todayText(), 'Total: ' + money(r.total)];
+    ['Kitchen', 'Service'].forEach(function (dept) {
+      lines.push('', dept);
+      r.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
+        lines.push(p.name + ' (' + detail(p) + '): ' + money(p.tips));
+      });
+    });
+    return lines.join('\n');
+  }
+  $('edit-result').addEventListener('click', function () { renderPeople(); show('people'); });
+  $('done').addEventListener('click', function () {
+    state.total = null; state.people = []; state.result = null; state.editing = null;
+    show('home');
+  });
+
+  $('copy-text').addEventListener('click', function () {
+    var text = resultText();
+    function fallback() {
+      var area = document.createElement('textarea');
+      area.value = text; area.setAttribute('readonly', '');
+      area.style.position = 'fixed'; area.style.opacity = '0';
+      document.body.appendChild(area); area.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(area);
+      toast(ok ? 'Copied' : 'Could not copy');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast('Copied'); }, fallback);
+    } else { fallback(); }
+  });
+
+  // ── Picture of the result, drawn on a canvas (no libraries) ──────────────
+  var logo = new Image();
+  logo.src = '/logo.png';
+
+  function fitText(ctx, text, maxWidth) {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    while (text.length > 1 && ctx.measureText(text + '…').width > maxWidth) text = text.slice(0, -1);
+    return text + '…';
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function drawPicture() {
+    var r = state.result;
+    var W = 1080, pad = 80, rowH = 104, headH = 96;
+    var groups = ['Kitchen', 'Service'].map(function (dept) {
+      return { dept: dept, people: r.people.filter(function (p) { return p.dept === dept; }) };
+    });
+    var H = 620 + groups.length * headH + r.people.length * rowH + 90;
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+    var font = function (weight, size) { ctx.font = weight + ' ' + size + 'px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'; };
+
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+    if (logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 110, 50, 220, 220);
+
+    ctx.textAlign = 'center'; ctx.fillStyle = '#15121C'; font(700, 46);
+    ctx.fillText('St. Bart', W / 2, 330);
+    ctx.fillStyle = '#625E6E'; font(400, 36);
+    ctx.fillText(todayText(), W / 2, 384);
+
+    var gradient = ctx.createLinearGradient(pad, 430, W - pad, 590);
+    gradient.addColorStop(0, '#14101D'); gradient.addColorStop(0.55, '#2A1750'); gradient.addColorStop(1, '#4B2A8F');
+    ctx.fillStyle = gradient; roundRect(ctx, pad, 430, W - 2 * pad, 160, 44); ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#CFC6E6'; font(600, 36);
+    ctx.fillText('Total tips', pad + 44, 523);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#FFFFFF'; font(800, 76);
+    ctx.fillText(money(r.total), W - pad - 44, 537);
+
+    var y = 620;
+    groups.forEach(function (group) {
+      ctx.textAlign = 'left'; ctx.fillStyle = '#4B2A8F'; font(700, 36);
+      ctx.fillText(group.dept, pad, y + 62);
+      y += headH;
+      group.people.forEach(function (p) {
+        ctx.strokeStyle = '#E6E3EE'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+
+        ctx.textAlign = 'right'; ctx.fillStyle = '#15121C'; font(800, 48);
+        var amount = money(p.tips);
+        var amountWidth = ctx.measureText(amount).width;
+        ctx.fillText(amount, W - pad, y + 68);
+
+        font(400, 34);
+        var info = detail(p);
+        var infoWidth = ctx.measureText(info).width;
+        ctx.textAlign = 'left'; ctx.fillStyle = '#15121C'; font(650, 44);
+        var name = fitText(ctx, p.name, W - 2 * pad - amountWidth - infoWidth - 70);
+        ctx.fillText(name, pad, y + 66);
+        var nameWidth = ctx.measureText(name).width;
+        ctx.fillStyle = '#625E6E'; font(400, 34);
+        ctx.fillText(info, pad + nameWidth + 22, y + 66);
+        y += rowH;
+      });
+    });
+    return canvas;
+  }
+  function fileName() {
+    var d = new Date();
+    var two = function (n) { return (n < 10 ? '0' : '') + n; };
+    return 'tips-' + d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()) + '.png';
+  }
+  function showPicture(blob) {
+    var url = URL.createObjectURL(blob);
+    $('picture-img').src = url;
+    $('picture-download').href = url;
+    $('picture-download').setAttribute('download', fileName());
+    $('picture').classList.add('active');
+  }
+  $('picture-close').addEventListener('click', function () { $('picture').classList.remove('active'); });
+  $('save-picture').addEventListener('click', function () {
+    drawPicture().toBlob(function (blob) {
+      if (!blob) { toast('Could not make the picture'); return; }
+      var file;
+      try { file = new File([blob], fileName(), { type: 'image/png' }); } catch (e) { file = null; }
+      // On phones this opens the share sheet: Save Image, Telegram, WhatsApp...
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(function (error) {
+          if (!error || error.name !== 'AbortError') showPicture(blob);
+        });
+      } else {
+        showPicture(blob);
+      }
+    }, 'image/png');
+  });
+
+  // ── Inside Telegram: fill the screen and greet by first name ─────────────
+  window.tipsTelegramReady = function () {
+    var tg = window.Telegram && window.Telegram.WebApp;
+    if (!tg || !tg.initData) return;
+    try {
+      tg.ready();
+      tg.expand();
+      var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+      if (user && user.first_name) $('hello').textContent = 'Hello, ' + user.first_name;
+    } catch (e) { /* the page works the same without it */ }
+  };
+})();
+</script>
+<script async src="https://telegram.org/js/telegram-web-app.js" onload="window.tipsTelegramReady && window.tipsTelegramReady()"></script>
+</body>
+</html>
