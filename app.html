@@ -215,6 +215,16 @@ h1, h2, p { margin: 0; }
 @keyframes squish { 0% { transform: scale(1); } 25% { transform: scale(0.9, 0.82); } 55% { transform: scale(1.08, 1.12) rotate(-2deg); } 80% { transform: scale(0.98) rotate(1deg); } 100% { transform: scale(1); } }
 @keyframes fly { 0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.25) rotate(var(--spin)); } }
 #calculate.ready { animation: glow 1.8s ease-in-out infinite; }
+/* Start today: a sheen of light sweeps across now and then, and the arrow nudges forward */
+@keyframes sheen { 0%, 60% { transform: translateX(-140%) skewX(-20deg); } 100% { transform: translateX(260%) skewX(-20deg); } }
+@keyframes nudge { 0%, 70%, 100% { transform: translateX(0); } 85% { transform: translateX(7px); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+#start { position: relative; overflow: hidden; }
+#start::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent); animation: sheen 3.2s ease-in-out infinite; pointer-events: none; }
+#start .go-arrow { display: inline-block; animation: nudge 3.2s ease-in-out infinite; }
+#start.go { animation: squish 0.5s var(--spring); }
+/* Delete, armed: the whole button turns red and shakes so the second tap is obvious */
+#delete-entry.armed { background: var(--danger); color: #FFFFFF !important; animation: shake 0.35s ease-in-out; }
 #calculate.go { animation: squish 0.5s var(--spring); }
 .coin { position: fixed; z-index: 30; font-size: 30px; pointer-events: none; animation: fly 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
 .hello .wave { display: inline-block; transform-origin: 70% 70%; animation: wiggle 0.9s ease-in-out 0.25s 1; }
@@ -242,7 +252,7 @@ h1, h2, p { margin: 0; }
     </div>
     <div class="spacer"></div>
     <div class="stack">
-      <button class="btn primary" id="start">Start today</button>
+      <button class="btn primary" id="start">Start today <span class="go-arrow" aria-hidden="true">→</span></button>
       <button class="btn" id="open-team">👥 Team <span class="soon" id="team-count"></span></button>
       <button class="btn" id="open-history">🕘 History <span class="soon" id="history-count"></span></button>
       <p class="private">🔒 Private: your team list and history are saved only on this phone. Nobody else can see them.</p>
@@ -616,6 +626,7 @@ h1, h2, p { margin: 0; }
   showGreeting();
   renderHistory();
   $('start').addEventListener('click', function () {
+    replay($('start'), 'go');
     $('total-input').value = state.total ? String(state.total) : '';
     $('total-error').textContent = '';
     show('total');
@@ -842,11 +853,11 @@ h1, h2, p { margin: 0; }
   $('delete-entry').addEventListener('click', function () {
     // two taps, so a slip of the thumb does not delete a day
     if (!deleteArmed) {
-      deleteArmed = true; $('delete-entry').textContent = 'Tap again';
-      setTimeout(function () { deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete'; }, 2500);
+      deleteArmed = true; $('delete-entry').textContent = 'Tap again'; $('delete-entry').classList.add('armed');
+      setTimeout(function () { deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete'; $('delete-entry').classList.remove('armed'); }, 3000);
       return;
     }
-    deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete';
+    deleteArmed = false; $('delete-entry').textContent = '🗑️ Delete'; $('delete-entry').classList.remove('armed');
     writeHistory(savedHistory().filter(function (e) { return e.id !== state.result.id; }));
     renderHistory(); show('history'); toast('Deleted');
   });
