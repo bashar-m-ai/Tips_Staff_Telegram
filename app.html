@@ -81,7 +81,7 @@ h1, h2, p { margin: 0; }
 .brand img { width: 64px; height: 64px; padding: 6px; border-radius: 20px; background: var(--card); }
 .brand b { display: block; font-size: 19px; letter-spacing: -0.01em; }
 .brand span { font-size: 14px; color: var(--muted); }
-.hello { font-size: 52px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; margin-top: 12px; overflow-wrap: anywhere; }
+.hello { font-size: 46px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; margin-top: 12px; overflow-wrap: anywhere; }
 .date { font-size: 20px; color: var(--muted); margin-top: 8px; }
 .soon { margin-left: auto; padding: 6px 12px; border-radius: 999px; background: var(--tint); color: var(--purple); font-size: 13px; font-weight: 650; white-space: nowrap; }
 .disabled-row {
@@ -217,14 +217,14 @@ h1, h2, p { margin: 0; }
       <div><b>St. Bart</b><span>Tips</span></div>
     </div>
     <div>
-      <h1 class="hello" id="hello">Hello</h1>
+      <h1 class="hello" id="hello">Good evening</h1>
       <p class="date" id="today"></p>
     </div>
     <div class="spacer"></div>
     <div class="stack">
       <button class="btn primary" id="start">Start today</button>
-      <button class="btn" id="open-team">Team <span class="soon" id="team-count"></span></button>
-      <div class="disabled-row" aria-disabled="true">Check history <span class="soon">Coming soon</span></div>
+      <button class="btn" id="open-team">👥 Team <span class="soon" id="team-count"></span></button>
+      <div class="disabled-row" aria-disabled="true">🕘 Check history <span class="soon">Coming soon</span></div>
     </div>
   </section>
 
@@ -232,11 +232,11 @@ h1, h2, p { margin: 0; }
   <section id="team" class="screen">
     <div class="bar">
       <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
-      <h1>Team</h1>
+      <h1>👥 Team</h1>
     </div>
     <p class="hint">Save each name once. When you add people to a day, tap the name instead of typing it. Names are saved on this phone.</p>
     <div class="group">
-      <h2>Kitchen</h2>
+      <h2>🍳 Kitchen</h2>
       <div class="rows" id="team-Kitchen"></div>
       <div class="add-row">
         <input class="field" id="team-input-Kitchen" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="Kitchen name" aria-label="New kitchen name">
@@ -244,7 +244,7 @@ h1, h2, p { margin: 0; }
       </div>
     </div>
     <div class="group">
-      <h2>Service</h2>
+      <h2>🍽️ Service</h2>
       <div class="rows" id="team-Service"></div>
       <div class="add-row">
         <input class="field" id="team-input-Service" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="Service name" aria-label="New service name">
@@ -257,7 +257,7 @@ h1, h2, p { margin: 0; }
   <section id="total" class="screen">
     <div class="bar">
       <button class="back" data-go="home" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
-      <h1>Total tips</h1>
+      <h1>💰 Total tips</h1>
     </div>
     <label class="label" for="total-input">How much is in the pot today?</label>
     <div class="total-entry">
@@ -276,18 +276,18 @@ h1, h2, p { margin: 0; }
       <h1>Who worked?</h1>
     </div>
     <button class="total-chip" id="change-total">
-      <span><small>Total tips</small><b id="people-total">€0.00</b></span>
+      <span><small>💰 Total tips</small><b id="people-total">€0.00</b></span>
       <i>Change</i>
     </button>
     <div class="group">
-      <h2>Kitchen</h2>
+      <h2>🍳 Kitchen</h2>
       <div class="rows" id="list-Kitchen"></div>
-      <button class="btn soft" data-add="Kitchen">+ Add kitchen</button>
+      <button class="btn soft" data-add="Kitchen">+ Add kitchen 🍳</button>
     </div>
     <div class="group">
-      <h2>Service</h2>
+      <h2>🍽️ Service</h2>
       <div class="rows" id="list-Service"></div>
-      <button class="btn soft" data-add="Service">+ Add service</button>
+      <button class="btn soft" data-add="Service">+ Add service 🍽️</button>
     </div>
     <p class="error" id="people-error" role="alert"></p>
     <div class="spacer"></div>
@@ -336,23 +336,23 @@ h1, h2, p { margin: 0; }
         <b>St. Bart</b>
         <span id="result-date"></span>
       </div>
-      <div class="sheet-total"><span>Total tips</span><b id="result-total"></b></div>
+      <div class="sheet-total"><span>💰 Total tips</span><b id="result-total"></b></div>
       <div>
-        <h2>Kitchen</h2>
+        <h2>🍳 Kitchen</h2>
         <div id="result-Kitchen"></div>
       </div>
       <div>
-        <h2>Service</h2>
+        <h2>🍽️ Service</h2>
         <div id="result-Service"></div>
       </div>
     </div>
     <div class="stack">
-      <button class="btn primary" id="save-picture">Save picture</button>
+      <button class="btn primary" id="save-picture">📸 Save picture</button>
       <div class="two">
-        <button class="btn" id="copy-text">Copy</button>
-        <button class="btn" id="edit-result">Edit</button>
+        <button class="btn" id="copy-text">📋 Copy</button>
+        <button class="btn" id="edit-result">✏️ Edit</button>
       </div>
-      <button class="btn quiet" id="done">Done · start new</button>
+      <button class="btn soft" id="done">✅ Done · start new</button>
     </div>
   </section>
 
@@ -373,6 +373,15 @@ h1, h2, p { margin: 0; }
   var $ = function (id) { return document.getElementById(id); };
   var state = { total: null, people: [], editing: null, result: null, nextId: 1 };
   var draft = { dept: 'Kitchen', half: false };
+
+  var DEPT_EMOJI = { Kitchen: '\uD83C\uDF73', Service: '\uD83C\uDF7D\uFE0F' };
+  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89']];
+  var firstName = '';
+  // A different greeting each time the home screen opens.
+  function showGreeting() {
+    var pick = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    $('hello').textContent = pick[0] + (firstName ? ', ' + firstName : '') + ' ' + pick[1];
+  }
 
   // ── Small helpers ────────────────────────────────────────────────────────
   function money(n) { return '€' + Number(n).toFixed(2); }
@@ -463,6 +472,7 @@ h1, h2, p { margin: 0; }
 
   // ── Home ─────────────────────────────────────────────────────────────────
   $('today').textContent = todayText();
+  showGreeting();
   $('start').addEventListener('click', function () {
     $('total-input').value = state.total ? String(state.total) : '';
     $('total-error').textContent = '';
@@ -645,9 +655,9 @@ h1, h2, p { margin: 0; }
   }
   function resultText() {
     var r = state.result;
-    var lines = ['St. Bart tips · ' + todayText(), 'Total: ' + money(r.total)];
+    var lines = ['St. Bart tips · ' + todayText(), '\uD83D\uDCB0 Total: ' + money(r.total)];
     ['Kitchen', 'Service'].forEach(function (dept) {
-      lines.push('', dept);
+      lines.push('', DEPT_EMOJI[dept] + ' ' + dept);
       r.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
         lines.push(p.name + ' (' + detail(p) + '): ' + money(p.tips));
       });
@@ -658,6 +668,7 @@ h1, h2, p { margin: 0; }
   $('done').addEventListener('click', function () {
     state.total = null; state.people = []; state.result = null; state.editing = null;
     renderTeam();
+    showGreeting();
     show('home');
   });
 
@@ -720,14 +731,14 @@ h1, h2, p { margin: 0; }
     gradient.addColorStop(0, '#14101D'); gradient.addColorStop(0.55, '#2A1750'); gradient.addColorStop(1, '#4B2A8F');
     ctx.fillStyle = gradient; roundRect(ctx, pad, 430, W - 2 * pad, 160, 44); ctx.fill();
     ctx.textAlign = 'left'; ctx.fillStyle = '#CFC6E6'; font(600, 36);
-    ctx.fillText('Total tips', pad + 44, 523);
+    ctx.fillText('\uD83D\uDCB0 Total tips', pad + 44, 523);
     ctx.textAlign = 'right'; ctx.fillStyle = '#FFFFFF'; font(800, 76);
     ctx.fillText(money(r.total), W - pad - 44, 537);
 
     var y = 620;
     groups.forEach(function (group) {
       ctx.textAlign = 'left'; ctx.fillStyle = '#4B2A8F'; font(700, 36);
-      ctx.fillText(group.dept, pad, y + 62);
+      ctx.fillText(DEPT_EMOJI[group.dept] + ' ' + group.dept, pad, y + 62);
       y += headH;
       group.people.forEach(function (p) {
         ctx.strokeStyle = '#E6E3EE'; ctx.lineWidth = 2;
@@ -789,7 +800,7 @@ h1, h2, p { margin: 0; }
       tg.ready();
       tg.expand();
       var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-      if (user && user.first_name) $('hello').textContent = 'Hello, ' + user.first_name;
+      if (user && user.first_name) { firstName = user.first_name; showGreeting(); }
     } catch (e) { /* the page works the same without it */ }
   };
 })();
