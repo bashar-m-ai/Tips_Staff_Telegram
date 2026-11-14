@@ -19,6 +19,7 @@
   --danger: #B42318;
   /* near-black sliding into dark purple: used on the main buttons and the total */
   --grad: linear-gradient(135deg, #14101D 0%, #2A1750 55%, #4B2A8F 100%);
+  --spring: cubic-bezier(0.34, 1.45, 0.64, 1);  /* overshoots a little, then settles */
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -42,7 +43,7 @@ h1, h2, p { margin: 0; }
   min-height: 100dvh;
   padding: calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
 }
-.screen.active { display: flex; animation: enter 0.18s ease-out; }
+.screen.active { display: flex; animation: enter 0.32s var(--spring) both; }
 .spacer { flex: 1; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 
@@ -53,9 +54,9 @@ h1, h2, p { margin: 0; }
   border: 0; border-radius: 22px;
   background: var(--card); color: var(--ink);
   font-size: 20px; font-weight: 650; letter-spacing: -0.01em;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.22s var(--spring), opacity 0.15s ease;
 }
-.btn:active { transform: scale(0.97); }
+.btn:active { transform: scale(0.95); }
 .btn.primary { background: var(--grad); color: #FFFFFF; box-shadow: 0 10px 24px rgba(43, 23, 80, 0.22); }
 .btn.soft { background: var(--tint); color: var(--purple); }
 .btn.quiet { background: transparent; color: var(--muted); min-height: 56px; font-size: 18px; }
@@ -156,9 +157,9 @@ h1, h2, p { margin: 0; }
   display: flex; align-items: center; justify-content: center; flex: none;
   width: 84px; height: 84px; border: 0; border-radius: 50%;
   background: var(--tint); color: var(--purple);
-  transition: transform 0.1s ease;
+  transition: transform 0.2s var(--spring);
 }
-.round:active { transform: scale(0.9); }
+.round:active { transform: scale(0.84); }
 .stepper input {
   width: 100%; min-width: 0; border: 0; background: transparent; text-align: center;
   font-size: 52px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
@@ -181,7 +182,7 @@ h1, h2, p { margin: 0; }
 .sheet-total span { font-size: 15px; font-weight: 600; color: #CFC6E6; }
 .sheet-total b { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .sheet h2 { font-size: 15px; font-weight: 700; color: var(--purple); text-transform: none; }
-.line { display: flex; align-items: baseline; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); animation: pop 0.22s ease-out both; }
+.line { display: flex; align-items: baseline; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); animation: pop 0.38s var(--spring) both; }
 .line b { flex: 1; min-width: 0; font-size: 19px; font-weight: 650; overflow-wrap: anywhere; }
 .line span { font-size: 15px; color: var(--muted); white-space: nowrap; }
 .line strong { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -204,8 +205,21 @@ h1, h2, p { margin: 0; }
 }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes enter { from { opacity: 0; transform: translateY(16px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes chip-in { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: none; } }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-16deg) scale(1.15); } 45% { transform: rotate(14deg) scale(1.15); } 70% { transform: rotate(-8deg); } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+/* Calculate button: a soft glow while it waits, then a squish and a burst of coins when tapped */
+@keyframes glow { 0%, 100% { box-shadow: 0 10px 24px rgba(43, 23, 80, 0.22); } 50% { box-shadow: 0 10px 34px rgba(109, 59, 209, 0.55); } }
+@keyframes squish { 0% { transform: scale(1); } 25% { transform: scale(0.9, 0.82); } 55% { transform: scale(1.08, 1.12) rotate(-2deg); } 80% { transform: scale(0.98) rotate(1deg); } 100% { transform: scale(1); } }
+@keyframes fly { 0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.25) rotate(var(--spin)); } }
+#calculate.ready { animation: glow 1.8s ease-in-out infinite; }
+#calculate.go { animation: squish 0.5s var(--spring); }
+.coin { position: fixed; z-index: 30; font-size: 30px; pointer-events: none; animation: fly 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+.hello .wave { display: inline-block; transform-origin: 70% 70%; animation: wiggle 0.9s ease-in-out 0.25s 1; }
+.chip { animation: chip-in 0.28s var(--spring) both; }
+.stepper input.bump { animation: bump 0.22s var(--spring); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
@@ -404,7 +418,44 @@ h1, h2, p { margin: 0; }
   function showGreeting() {
     var pick = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     var named = firstName && /^(Good|Nice|Well)/.test(pick[0]);
-    $('hello').textContent = pick[0] + (named ? ', ' + firstName : '') + ' ' + pick[1];
+    $('hello').textContent = pick[0] + (named ? ', ' + firstName : '') + ' ';
+    $('hello').appendChild(el('span', 'wave', pick[1]));
+  }
+
+  // ── Motion (all skipped when the phone asks for reduced motion) ──────────
+  var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function replay(node, className) {
+    node.classList.remove(className);
+    void node.offsetWidth;            // lets the browser restart the animation
+    node.classList.add(className);
+  }
+  function coinBurst(fromNode) {
+    if (calm) return;
+    var box = fromNode.getBoundingClientRect();
+    var coins = ['\uD83D\uDCB0', '\uD83E\uDE99', '\u2728', '\uD83D\uDCB8', '\uD83E\uDE99', '\uD83D\uDCB6'];
+    for (var i = 0; i < 16; i++) {
+      var coin = el('span', 'coin', coins[i % coins.length]);
+      coin.style.left = (box.left + box.width * (0.1 + 0.8 * Math.random()) - 15) + 'px';
+      coin.style.top = (box.top + box.height / 2 - 15) + 'px';
+      coin.style.setProperty('--dx', Math.round((Math.random() - 0.5) * 260) + 'px');
+      coin.style.setProperty('--dy', Math.round(-180 - Math.random() * 320) + 'px');
+      coin.style.setProperty('--spin', Math.round((Math.random() - 0.5) * 540) + 'deg');
+      coin.style.animationDelay = Math.round(Math.random() * 140) + 'ms';
+      document.body.appendChild(coin);
+      setTimeout(function (c) { c.remove(); }, 1300, coin);
+    }
+  }
+  function countUp(node, amount) {
+    if (calm) { node.textContent = money(amount); return; }
+    var start = null, duration = 650;
+    function frame(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / duration);
+      var eased = 1 - Math.pow(1 - t, 3);
+      node.textContent = money(amount * eased);
+      if (t < 1) requestAnimationFrame(frame); else node.textContent = money(amount);
+    }
+    requestAnimationFrame(frame);
   }
 
   // ── Small helpers ────────────────────────────────────────────────────────
@@ -596,6 +647,8 @@ h1, h2, p { margin: 0; }
   function renderPeople() {
     $('people-total').textContent = money(state.total);
     $('people-error').textContent = '';
+    var ready = ['Kitchen', 'Service'].every(function (d) { return state.people.some(function (p) { return p.dept === d; }); });
+    $('calculate').classList.toggle('ready', ready);
     ['Kitchen', 'Service'].forEach(function (dept) {
       var box = $('list-' + dept);
       box.textContent = '';
@@ -610,6 +663,10 @@ h1, h2, p { margin: 0; }
         box.appendChild(row);
       });
     });
+  }
+  function renderPeopleReady() {
+    var ready = ['Kitchen', 'Service'].every(function (d) { return state.people.some(function (p) { return p.dept === d; }); });
+    $('calculate').classList.toggle('ready', ready);
   }
   document.querySelectorAll('[data-add]').forEach(function (b) {
     b.addEventListener('click', function () { openPerson(b.dataset.add, null); });
@@ -663,6 +720,7 @@ h1, h2, p { margin: 0; }
     if (!isFinite(v)) v = 8;
     v = Math.min(24, Math.max(0.5, Math.round((v + change) * 2) / 2));
     $('person-hours').value = String(v);
+    replay($('person-hours'), 'bump');
   }
   $('hours-minus').addEventListener('click', function () { stepHours(-0.5); });
   $('hours-plus').addEventListener('click', function () { stepHours(0.5); });
@@ -700,6 +758,9 @@ h1, h2, p { margin: 0; }
       return;
     }
     var button = $('calculate');
+    button.classList.remove('ready');
+    replay(button, 'go');
+    coinBurst(button);
     button.disabled = true;
     $('people-error').textContent = '';
     fetch('/api/split', {
@@ -726,7 +787,7 @@ h1, h2, p { margin: 0; }
         show('result');
       })
       .catch(function () { $('people-error').textContent = 'No connection. Check the internet and try again.'; })
-      .then(function () { button.disabled = false; });
+      .then(function () { button.disabled = false; renderPeopleReady(); });
   });
 
   // ── Result ───────────────────────────────────────────────────────────────
@@ -739,16 +800,19 @@ h1, h2, p { margin: 0; }
     $('delete-entry').style.display = state.viewing ? '' : 'none';
     $('back-to-history').style.display = state.viewing ? '' : 'none';
     $('result-total').textContent = money(r.total);
+    if (!state.viewing) countUp($('result-total'), r.total);
     var index = 0;
     ['Kitchen', 'Service'].forEach(function (dept) {
       var box = $('result-' + dept);
       box.textContent = '';
       r.people.filter(function (p) { return p.dept === dept; }).forEach(function (p) {
         var line = el('div', 'line');
-        line.style.animationDelay = (index++ * 40) + 'ms';
+        line.style.animationDelay = (index++ * 90) + 'ms';
         line.appendChild(el('b', '', p.name));
         line.appendChild(el('span', '', detail(p)));
-        line.appendChild(el('strong', '', money(p.tips)));
+        var amount = el('strong', '', money(p.tips));
+        line.appendChild(amount);
+        if (!state.viewing) countUp(amount, p.tips);
         box.appendChild(line);
       });
     });
