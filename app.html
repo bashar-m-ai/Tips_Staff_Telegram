@@ -393,12 +393,12 @@ h1, h2, p { margin: 0; }
   var draft = { dept: 'Kitchen', half: false };
 
   var DEPT_EMOJI = { Kitchen: '\uD83C\uDF73', Service: '\uD83C\uDF7D\uFE0F' };
-  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89'], ['Tip time', '\uD83D\uDCB8'], ["Let's split the tips", '\uD83D\uDCB0']];
+  var GREETINGS = [['Good job', '\uD83D\uDC4F'], ['Nice work', '\uD83D\uDE4C'], ['Well done', '\uD83D\uDCAA'], ['Good evening', '\u2728'], ['Shift done', '\uD83C\uDF89'], ['Tip time', '\uD83D\uDCB8'], ["Let's split the tips", '\uD83D\uDCB0'], ["Let's calculate the tips", '\uD83E\uDDEE'], ["Tip o'clock", '\u23F0'], ['Sharing is caring', '\uD83D\uDC9C']];
   var firstName = '';
   // A different greeting each time the home screen opens.
   function showGreeting() {
     var pick = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
-    var named = firstName && pick[0].indexOf("Let's") !== 0;
+    var named = firstName && /^(Good|Nice|Well)/.test(pick[0]);
     $('hello').textContent = pick[0] + (named ? ', ' + firstName : '') + ' ' + pick[1];
   }
 
