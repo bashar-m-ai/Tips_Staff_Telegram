@@ -438,12 +438,10 @@ h1, h2, p { margin: 0; }
     node.classList.remove(className);
     void node.offsetWidth;            // lets the browser restart the animation
     node.classList.add(className);
-    // take the class off again when it finishes, otherwise the animation
-    // replays every time the screen is shown again
-    node.addEventListener('animationend', function done() {
-      node.classList.remove(className);
-      node.removeEventListener('animationend', done);
-    });
+    // Take the class off again afterwards, otherwise the animation replays
+    // every time the screen is shown again. (A timer, because the screen may
+    // already be hidden before the animation gets to finish.)
+    setTimeout(function () { node.classList.remove(className); }, 700);
   }
   function coinBurst(fromNode) {
     if (calm) return;
@@ -482,6 +480,7 @@ h1, h2, p { margin: 0; }
     return isFinite(v) ? v : NaN;
   }
   function show(id) {
+    document.querySelectorAll('.go').forEach(function (n) { n.classList.remove('go'); });
     document.querySelectorAll('.screen').forEach(function (s) { s.classList.toggle('active', s.id === id); });
     window.scrollTo(0, 0);
   }
